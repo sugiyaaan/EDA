@@ -1,0 +1,144 @@
+---
+title: "EDA Activitiy 3A"
+author: "Motoki Sugino"
+date: "10/7/2016"
+output: html_document
+---
+###1.  Install the package TeachingDemos into R.
+```{r}
+#install.packages("TeachingDemos")
+library(car)
+```
+
+
+###2.  Define the following (x, y) data and run the function put.points.demo on this data: 
+```{r}
+library(TeachingDemos)
+x=c(2,2,4,5,6,7,8,9,10)
+y=c(7,8,6,7,4,6,4,6,3)
+lm(y~x)
+scatterplot(y ~ x,
+      xlab="x", ylab="y",
+      smoother=FALSE,
+      boxplots=FALSE)
+#put.points.demo(x,y)
+```
+
+Record the equation of the least-squares line below:
+$y=-0.44x+8.25$
+
+###3.  One problem with the least-squares is that it can be heavily influenced by a single point.  By use of the “Add Point” feature of the put.points.demo function, add a single point that will have a significant effect on the least-squares fit.
+```{r}
+x1=c(2,2,4,5,6,7,8,9,10,0)
+y1=c(7,8,6,7,4,6,4,6,3,2)
+lm(y1~x1)
+scatterplot(y1 ~ x1,
+      xlab="x", ylab="y",
+      smoother=FALSE,
+      boxplots=FALSE)
+#put.points.demo(x1,y1)
+```
+
+Point you added: $(x.y)=(0.2)$
+
+New least-squares fit: $y=-0.101x+5.835$
+
+We can see that the slpoe chaged from -0.44 to -0.101 and the intercept changed from 8.249 to 5.835.
+
+###4.  The function rline in the LearnEDA package implements a resistant line described in the Lecture Notes.  Find a resistant fit of both the original (x, y) data and of the new data with the new point added. 
+```{r}
+library(LearnEDA)
+data<- data.frame(x, y)
+data1<- data.frame(x1, y1)
+
+myfit <-rline(x,y)[c("a", "b", "xC")];myfit
+myfit1<-rline(x1,y1)[c("a", "b", "xC")];myfit1
+```
+
+Original (x, y) data: Equation of the resistant line: $y=5.524-0.4286(x-6)$ = $y=8.096-0.4286x$
+
+New data with additional point: Equation of the resistant line: $y=5.667-0.4286(x-5.5)$ = $y=8.0243-0.4286x$
+
+###5.  Compare the least-squares and resistant fits for the original data and for the new data.  Have you demonstrated in this example that the resistant fit is indeed resistant to outlying points?
+
+While I could see that both coefficients were changed after adding the outlying points in the question 3, I could not see the big difference in both coefficients in the question 4. Therefore, I have demonstrated that resistant fit is indeed resistant to outlying points.
+
+###6.  Demonstrate the differences between the two fits for the new data by plotting the data and both lines on the same graph using contrasting colors.
+```{r}
+plot(x, y, main="The least-squares line comparison")
+curve(-0.44*x+8.25, add=TRUE, col="red")
+curve(-0.101*x+5.835, add=TRUE, col="blue")
+
+legend("topright",c("Original", "New"),col=c('red','blue'),lwd=2,lty=c(1,1),bty="o",ncol=1,cex=1,pt.cex=0.7,xpd=TRUE)
+
+plot(x, y, main="The resistant line comparison")
+curve(8.096-0.4286*x, add=TRUE, col="red")
+curve(8.0243-0.4286*x, add=TRUE, col="blue")
+
+legend("topright",c("Original", "New"),col=c('red','blue'),lwd=2,lty=c(1,1),bty="o",ncol=1,cex=1,pt.cex=0.7,xpd=TRUE)
+```
+Now, I can graphically see that the resistant line does not change much affer adding new data. Namely, the least-squares is that it can be heavily influenced by a single point.
+
+###7.  There are other “resistant” fitting methods available.  In the MASS package, both the functions rlm and lqs implement different “resistant fits”.  Explain briefly the algorithms of these two fitting algorithms and use the rlm and lqs methods to fit lines to your new data.  Contrast the resistant, rlm, lqs, and least-squares fits.
+```{r}
+library(MASS)
+rlm.fit=rlm(y~x)
+rlm.fit1=rlm(y1~x1)
+```
+
+Original (x, y) data:The equation of RIM line:$y=8.26-0.44x$
+New data with additional point:Equation of RIM line:$y=6.6-0.21x$
+
+I can see that both slope and intercept seem to be influenced by a single point.
+
+```{r}
+lqs.fit=lqs(y~x)
+lqs.fit1=lqs(y1~x1)
+```
+
+Original (x, y) data:The equation of LQS line: $y=8.05-0.25x$
+New data with additional point:Equation of LQS line: $y=7.633-0.2x$
+
+By looking at the fit, I could say that both slope and intercept seem to be not heavily influenced by a single point.
+
+**Explaining briefly the algorithms of these two fitting algorithms and use the rlm and lqs methods to fit lines to your new data.**
+
+Rlm fits models use your choice of a number of different MM-estimators, while lqs fits model achieve a regression estimator with a high breakdown point.
+
+**the algorithms of Rlm method**
+The rlm command in the MASS package command implements several versions of robust regression.
+M-estimation defines a weight function such that the estimating equation becomes $∑_in=1w_i(y_i−x′b)x′_i=0$. However, the weights depend on the residuals and the residuals on the weights. The equation is solved using Iteratively Reweighted Least Squares (IRLS).
+
+**the algorithms of lqs method**
+Fit a regression to the good points in the dataset, thereby achieving a regression estimator with a high breakdown point. Then, the lqs method supposes there are n data points and p regressors, including any intercept. it uses the quantile squared residual. The "S" estimation method solves for the scale s such that the average of a function chi of the residuals divided by s is equal to a given constant.
+
+
+
+####"The comparison of four fits with plots"
+```{r}
+
+par(mfrow=c(2,2))
+
+plot(x, y, main="The least-squares line comparison")
+curve(-0.44*x+8.25, add=TRUE, col="red")
+curve(-0.101*x+5.835, add=TRUE, col="blue")
+legend("topright",c("Original", "New"),col=c('red','blue'),lwd=2,lty=c(1,1),bty="o",ncol=1,cex=1,pt.cex=0.7,xpd=TRUE)
+
+plot(x, y, main="The resistant line comparison")
+curve(8.096-0.4286*x, add=TRUE, col="red")
+curve(8.0243-0.4286*x, add=TRUE, col="blue")
+
+plot(x, y, main="The RIM line comparison")
+curve(8.26-0.44*x, add=TRUE, col="red")
+curve(6.6-0.21*x, add=TRUE, col="blue")
+
+plot(x, y, main="The LQS line comparison")
+curve(8.05-0.25*x, add=TRUE, col="red")
+curve(7.633-0.2*x, add=TRUE, col="blue")
+```
+
+While I can see that the least-squares line has the biggest change in its coefficients, I can see that the RIM line has the second biggest change in its cofficients.
+On the other hand, the LQS line can be slightly influenced by a single point. The resistant line can be barely influenced by a single point.
+In terms of the unaffected by outlying points, I can say that the resistant line is the best to get a closer slope with original data.
+
+

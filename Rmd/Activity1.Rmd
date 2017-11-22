@@ -1,0 +1,39 @@
+---
+title: "Activity1"
+author: "Motoki Sugino"
+date: "September 2, 2016"
+output: html_document
+---
+```{r}
+#1
+outliers=function(rdensity,sample.size,plot=TRUE,...){
+y=rdensity(sample.size,...)
+if(plot==TRUE) boxplot(y)
+length(boxplot(y,plot=FALSE)$out)
+}
+outliers(rnorm, 20)
+
+#2
+OUT=replicate(100,outliers(rnorm,20,plot=FALSE))
+table(OUT)
+sum(as.integer(row.names(table(OUT)))*table(OUT))
+
+#4
+x<-c(5,10,20,40)
+y<-c(0.072,0.027,0.0135,0.01425)
+plot(x,y,xlab="sample size",ylab="the proportion of outliers")
+curve(0.00698 + 0.4/x, add=TRUE)
+
+#5
+outliers(rt,20,df=4)
+OUT=replicate(100, outliers(rt,20,plot=FALSE,df=4))
+table(OUT)
+sum(as.integer(row.names(table(OUT)))*table(OUT))
+
+x<-c(5,10,20,40)
+y<-c(0.082,0.054,0.048,0.03975)
+plot(x,y,xlab="sample size",ylab="the proportion of outliers")
+curve(0.00698 + 0.4/x, add=TRUE)
+
+```
+

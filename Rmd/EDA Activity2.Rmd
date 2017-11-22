@@ -1,0 +1,136 @@
+---
+title: "EDA Activity2"
+author: "Motoki Sugino"
+date: "September 14, 2016"
+output: html_document
+---
+#PART I Comparing Weekend and Weekday Web Visits 
+
+Using the Google Analytics tool, your instructor collects the number of daily visits to the website that promotes his Bayesian R book.
+
+He collects the following visit counts for 20 weekend days (Saturday or Sunday):
+
+11 10 12 15 8 24 14 11 6 11 6 12 10 14 7 10 17 5 3 4
+
+He collects the following visit counts for 20 weekdays (Tuesday and Wednesday).
+
+18 21 27 23 27 28 25 19 26 32 51 45 32 19 15 37 34 32 32 30
+
+He wishes to compare the weekend visit counts with the weekday visit counts.
+
+##1.Put the weekend visit counts in the vector Weekend, and put the weekday counts in the vector Weekday.
+
+```{r}
+Weekend <- c(11,10,12,15,8,24,14,11,6,11,6,12,10,14,7,10,17,5,3,4);Weekend
+Weekday <- c(18,21,27,23,27,28,25,19,26,32,51,45,32,19,15,37,34,32,32,30);Weekday
+```
+
+##2.Combine the two vectors by the data.frame function and then use the stack function to modify the data into a new format. The data frame New.data has two variables – values contains the response (the visit counts) and ind contains the group (Weekend or Weekday).
+
+```{r}
+New.data <- stack(data.frame(Weekend,Weekday));New.data
+```
+
+##3.Load in the package LearnEDA. Using the slider.compare function, compare the weekend and weekday visit counts.
+
+slider.compare(New.data$values, New.data$ind)
+```{r}
+library(LearnEDA)
+#slider.compare(New.data$values, New.data$ind)
+
+```
+
+Answer the following questions:
+
+##4.If you look at the raw data (Power = 1), which group (Weekend or Weekday) has the larger median? Which group has the larger spread?
+
+```{r}
+boxplot(values ~ ind, horizontal = TRUE,
+         data = New.data, xlab = "Visits",
+         ylab = "Group")
+spread.level.plot(New.data$values, New.data$ind)
+```
+
+*Weekday has the larger median with 27.5 and the larger spread.
+
+##5.Do you see any outliers in the raw data? How many and what groups have the outliers?
+Yes,in weekend box plot, there are one outlier next to the right side of whisker. In weekday boxplot,there are one outlier next to the right side of whisker.
+
+##6.Change the power of the reexpression to 0.5. Compare the spreads of the two groups.
+
+```{r}
+WDAYp0.5<-sqrt(Weekday)
+WENDp0.5<-sqrt(Weekend)
+New.data2 <- stack(data.frame(WENDp0.5,WDAYp0.5))
+boxplot(values ~ ind, horizontal = TRUE,
+         data = New.data2, xlab = "Visits",
+         ylab = "Group")
+spread.level.plot(New.data2$values, New.data2$ind)
+```
+
+*Both Weekday and Weekend Boxplot have approximately the same spread of whiskers. We can see that Weekday's fourth spread is slightly larger than Weekday's fourth spread. Weekday has larger median with 5.243828 and there are one outlier in weekday boxplot. 
+
+##7.Change the power of the reexpression to 0 (this corresponds to taking the log reexpression). Compare the spreads of the two groups.
+
+```{r}
+WDAYp0<-log(Weekday)
+WENDp0<-log(Weekend)
+New.data3 <- stack(data.frame(WENDp0,WDAYp0))
+boxplot(values ~ ind, horizontal = TRUE,
+         data = New.data3, xlab = "Visits",
+         ylab = "Group")
+spread.level.plot(New.data3$values, New.data3$ind)
+```
+*From the plot above, I cannot see any improvement for reducing dependences since Weekend has the wider whiskers spread and the length of box. However, the weekday has higher median. 
+
+##8.Summarizing your work from parts 4, 6, 7, which is the best way of reexpressing the data – raw (p = 1), roots (p = 0.5) or logs (p = 0)? Why?
+
+*I think roots (p = 0.5) is the best way of reexpressing the data since they have roughly equal spreads. However, there is negative relationship in level and spread. So we need to reduce the dependece to reanalyze the data. There is no outliers. 
+
+##9.Using the best reexpression, how do the Weekend counts differ from the Weekday counts?
+
+*Using the best reexpression which is roots (p = 0.5), we can say weekday has the higher median of number of daily visits to the website that promotes his Bayesian R book.
+However, Weekend has a wider spread of batch.
+
+
+
+#PART II Comparing Snowfalls of Two Cities
+
+[From Tukey (1977), exhibit 11 of chapter 4]
+
+The data snowfall in the LearnEDA package contains the seasonal snowfall (in inches) in Buffalo, New York and Cairo, Illinois, from 1918-19 to 1937-38.
+
+Use the slider.compare function for the following questions.
+
+slider.compare(snowfall$Snowfall, snowfall$City)
+
+```{r}
+library(LearnEDA)
+#slider.compare(snowfall$Snowfall, snowfall$City)
+```
+
+##1.Construct parallel boxplots of the Buffalo and Cairo snowfall amounts. Comment if there is a dependence between spread and level in this example.
+
+```{r}
+boxplot(Snowfall ~ City, horizontal = TRUE,
+         data = snowfall, xlab = "snowfall",
+         ylab = "city")
+spread.level.plot(snowfall$Snowfall,snowfall$City)
+```
+*There is positive relationship between level and spread.Therefore, there is dependence between log M and lod dF(fourth spread).
+
+##2.Try different reexpressing the data on R by power expressions of the form (data^p – 1)/p. By inspecting the parallel boxplots of the reexpressed data, decide on an appropriate value of the power p so that the spreads of the two datasets are roughly equal.
+
+```{r}
+best<-((snowfall$Snowfall^0.5-1)/0.5)
+bestnew.data <- (data.frame(snowfall$City,best))
+boxplot(best ~ snowfall.City, horizontal = TRUE,
+         data = bestnew.data, xlab = "snowfall",
+         ylab = "city")
+spread.level.plot(bestnew.data$best, bestnew.data$snowfall.City)
+```
+* I would say p=0.5 is an appropriate value of the power p so that the spreads of the two datasets are roughly equal. Therfore, snowfall in Buffalo is 11 units greater than Cario. However, there is positive relationship between level and spread. 
+
+##3.Using the reexpressed data, make a comparison between the Buffalo and Cairo snowfall amounts.
+
+Using the reexpressed data p=9.5, Buffalo has roughly the same  spreads of two datasets. Therfore, snowfall in Buffalo is 11 units greater than Cario.
