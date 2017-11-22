@@ -1,0 +1,369 @@
+---
+title: "EDA Assignment 3"
+author: "Motoki Sugino"
+date: "September 15, 2016"
+output: html_document
+---
+For each of the two datasets below
+
+Find 5-number summaries, fences, and outside values for each group (CITY).
+Construct parallel boxplots.
+Using a spread-vs-level plot, determine the power of a transformation that you believe will stabilize spread.
+Using the transformation, reanalyze the data by computing new 5-number summaries (and fence and outside values) and parallel boxplots. Was the transformation successful in stabilizing spread? If not, which alternative transformation might you try next?
+Discuss the differences you found between the groups and unusual data values (BE SPECIFIC AND MAKE COMPARISONS).
+
+#Dataset 1
+#Find 5-number summaries, fences, and outside values for each group (CITY).
+
+```{r}
+library(LearnEDA)
+library(aplpack)
+#stem plot
+#tapply(salaries$Salary,salaries$City,aplpack::stem.leaf)#Amsterdam,Athens,Bangkok,Hong_Kong,Los_Angeles,Singapore
+#5-number summaries
+fivenum1 <-tapply(salaries$Salary,salaries$City,summary);fivenum1
+```
+*This above table is 5 number summary (mean is not five number summary). 
+
+```{r}
+library(dplyr)
+Amsterdam<-c(266.0,310.0,341.0,381.4,424.0,593.0)
+Athens<-c(106.0,117.5,161.0,172.3,192.0,320.0)
+Bangkok<-c(31.00,34.50,37.00,69.71,101.50,148.00)
+Hong_Kong<-c(59.0,96.0,116.0,127.0,159.5,203.0)
+Los_Angeles<-c(179.0,308.5,326.0,362.7,412.0,593.0)
+Singapore<-c(43.0,67.5,89.0,101.7,97.5,250.0)
+
+Amsterdam<-c(310.0,424.0)
+Athens<-c(117.5,192.0)
+Bangkok<-c(34.50,101.50)
+Hong_Kong<-c(96.0,159.5)
+Los_Angeles<-c(308.5,412.0)
+Singapore<-c(67.5,97.5)
+Q3andQ1=as.data.frame(rbind(Amsterdam,Athens,Bangkok,Hong_Kong,Los_Angeles,Singapore))
+rename(Q3andQ1,"1stQ"=V1,"3rdQ"=V2)
+df=as.data.frame(rbind(cbind(Q3andQ1$V2-Q3andQ1$V1)))
+rename(df,dF=V1)
+STEP=as.data.frame(rbind(cbind(df$V1*1.5)))
+rename(STEP,STEP=V1)
+Lowerfence=as.data.frame(rbind(cbind(Q3andQ1$V1-STEP$V1)))
+Upperfence=as.data.frame(rbind(cbind(Q3andQ1$V2+STEP$V1)))
+LowerfenceandUpperfence=as.data.frame(rbind(cbind(Lowerfence$V1,Upperfence$V1)))
+rename(LowerfenceandUpperfence,Lowerfence=V1,Upperfence=V2)
+LOWERFENCE=as.data.frame(rbind(cbind(Q3andQ1$V1-(2*STEP$V1))))
+UPPERFENCE=as.data.frame(rbind(cbind(Q3andQ1$V2+(2*STEP$V1))))
+LOWERFENCEandUPPERFENCE=as.data.frame(rbind(cbind(LOWERFENCE$V1,UPPERFENCE$V1)))
+rename(LOWERFENCEandUPPERFENCE,LOWERFENCE=V1,UPPERFENCE=V2)
+
+#Summary for fences
+name<-rbind("Amsterdam","Athens","Bangkok","Hong_Kong","Los_Angeles","Singapore")
+TableFences=as.data.frame(rbind(cbind(name,Q3andQ1$V1,Q3andQ1$V2,df$V1*1.5,Lowerfence$V1,Upperfence$V1,LOWERFENCE$V1,UPPERFENCE$V1)))
+rename(TableFences,"1stQ"=V2,"3rdQ"=V3,STEP=V4,Lowerfence=V5,Upperfence=V6,LOWERFENCE=V7,UPPERFENCE=V8)
+```
+
+*This above table is for 5-number summaries, fences.
+
+```{r}
+#outside values
+Soutlier<-data.frame(Athens=c(320),
+           Los_Angeles=c(593),
+           Singapore=c(250));Soutlier
+```
+There are total 3 outliers in the salaries data.
+
+#Construct parallel boxplots.
+
+```{r}
+#Construct parallel boxplots.
+Sboxplot<-boxplot(Salary ~ City, horizontal = TRUE,
+         data = salaries, xlab = "Salary",
+         ylab = "City");Sboxplot
+```
+*The boxplot for Amsterdam and Los_Angeles have wider spreads and have the similar median.  
+
+#Using a spread-vs-level plot, determine the power of a transformation that you believe will stabilize spread.
+
+```{r}
+#making new data set for spreadvslevel"Amsterdam","Athens","Bangkok","Hong_Kong","Los_Angeles","Singapore"
+Ams=subset(salaries,City=="Amsterdam")
+Ath=subset(salaries,City=="Athens")
+Ban=subset(salaries,City=="Bangkok")
+Hong=subset(salaries,City=="Hong_Kong")
+Los=subset(salaries,City=="Los_Angeles")
+Sin=subset(salaries,City=="Singapore")
+newdata<-rbind(Ams,Ath,Ban,Hong,Los,Sin);newdata
+#spread-vs-level plot
+spread.level.plot(newdata$Salary, newdata$City)
+
+#How to find power
+power=1-0.5
+```
+*I believe that the power of a transformation 0.5 will stabilize spread.
+
+
+#Using the transformation, reanalyze the data by computing new 5-number summaries (and fence and outside values) and parallel boxplots. 
+
+```{r}
+power=1-0.5
+attach(newdata)
+reexpressed.data <- data.frame(newdata$Salary^(power),newdata$City);reexpressed.data
+attach(reexpressed.data)
+spread.level.plot(reexpressed.data$newdata.Salary..power., reexpressed.data$newdata.City)
+newfivesum<-tapply(reexpressed.data$newdata.Salary..power., reexpressed.data$newdata.City,summary);newfivesum #mean does not count as five number summary
+
+```
+```{r}
+#fences for reexpresseddata
+Ams1=subset(reexpressed.data$newdata.Salary..power.,reexpressed.data$newdata.City=="Amsterdam")
+Ams1.five<-as.vector(fivenum(Ams1))
+Ath1=subset(reexpressed.data$newdata.Salary..power.,reexpressed.data$newdata.City=="Athens")
+Ath1.five<-as.vector(fivenum(Ath1))
+Ban1=subset(reexpressed.data$newdata.Salary..power.,reexpressed.data$newdata.City=="Bangkok")
+Ban1.five<-as.vector(fivenum(Ban1))
+Hong1=subset(reexpressed.data$newdata.Salary..power.,reexpressed.data$newdata.City=="Hong_Kong")
+Hong1.five<-as.vector(fivenum(Hong1))
+Los1=subset(reexpressed.data$newdata.Salary..power.,reexpressed.data$newdata.City=="Los_Angeles")
+Los1.five<-as.vector(fivenum(Los1))
+Sin1=subset(reexpressed.data$newdata.Salary..power.,reexpressed.data$newdata.City=="Singapore")
+Sin1.five<-as.vector(fivenum(Sin1))
+
+newdata2<-rbind(Ams1.five,Ath1.five,Ban1.five,Hong1.five,Los1.five,Sin1.five)
+FNStable=as.data.frame(newdata2,row.names=c("Amsterdam","Athens","Bangkok","Hong_Kong","Los_Angeles","Singapore"))
+colnames(FNStable)=c("min","firstQ","median","thirdQ","max")
+newSTEP=1.5*(FNStable$thirdQ-FNStable$firstQ)
+newLowerfence=FNStable$firstQ-newSTEP
+newUpperfence=FNStable$thirdQ+newSTEP
+newLOWERFENCE=FNStable$firstQ-2*newSTEP
+newUPPERFENCE=FNStable$thirdQ-2*newSTEP
+newtable=cbind(FNStable,newLowerfence,newUpperfence,newLOWERFENCE,newUPPERFENCE)
+
+#outliers for reexpressed data
+re.outlier<-data.frame(Los_Angeles=c(13.37909, 24.35159),
+                       Singapore=c(15.81139," "));re.outlier
+```
+*There are totall three outlires in reexpressed data : Two outlirers in Los_Angeles and there is one in Singapore.
+
+```{r}
+#parallel boxplots for reexpressed data
+reexpressed.data <- data.frame(SP=newdata$Salary^(power),City=newdata$City)
+rex.boxplot<-boxplot(SP ~ City, horizontal = TRUE,
+         data = reexpressed.data, xlab = "Salary Power",
+         ylab = "City");rex.boxplot
+```
+
+#Was the transformation successful in stabilizing spread? If not, which alternative transformation might you try next?
+
+*Yes the transformation was successfull since there are roughly no relationship between log M and log dF in spread vs level plot. We have removed the trend between spread and level.
+Amsterdam, Athens, Bangkok and Hong_Kong are roughly have the equal spreads.
+
+```{r}
+#Comparing the spreads side by side
+comps1<-as.data.frame(rbind(114.0,74.5,67.0,63.5,103.5,30.0))
+comps2<-as.data.frame(rbind(2.947328,3.021769,4.132535,2.870232,2.702420,1.709509))
+comps<-data.frame(comps1,comps2)
+rename(comps,dFraw=V1,dFreexp=V1.1)
+114/30
+4.132535/1.709509
+```
+
+The spreads of the raw data range from 30 to 114-the largest spread is 3.8 times the smallest.
+The spreads of the reexpressed data range from 4.132535 to 1.709509-the largest spread is 2.417381 times the smallest.
+This is an improvement.
+
+#Discuss the differences you found between the groups and unusual data values (BE SPECIFIC AND MAKE COMPARISONS).
+
+After transforming datasets, Amsterdam, Athens, Bangkok and Hong_Kong are roughly have the equal spreads.
+Cashiers in Los Angeles make extreamly low salary while managers in Los Angeles and Singapore make extreamly high salary. I can see that Amsterdam has the highest median and Bangkok has the lowest median.
+
+#Dataset 2
+
+```{r}
+library(LearnEDA)
+island.areas
+```
+
+#Find 5-number summaries, fences, and outside values for each group (CITY).
+
+```{r}
+library(aplpack)
+#stem plot
+#tapply(island.areas$Area,island.areas$Ocean,aplpack::stem.leaf)
+#5-number summaries
+fivenum2 <-tapply(island.areas$Area,island.areas$Ocean,summary);fivenum2
+
+#fences for the Artic Ocean, Caribbean Sea, Indian Ocean, Mediterranean Sea and East Indies
+Arctic=subset(island.areas$Area,island.areas$Ocean=="Arctic")
+Arctic.five<-as.vector(fivenum(Arctic))
+Caribbean=subset(island.areas$Area,island.areas$Ocean=="Caribbean")
+Caribbean.five<-as.vector(fivenum(Caribbean))
+Indian=subset(island.areas$Area,island.areas$Ocean=="Indian")
+Indian.five<-as.vector(fivenum(Indian))
+Mediterranean=subset(island.areas$Area,island.areas$Ocean=="Mediterranean")
+Mediterranean.five<-as.vector(fivenum(Mediterranean))
+East_Indies=subset(island.areas$Area,island.areas$Ocean=="East_Indies")
+East_Indies.five<-as.vector(fivenum(East_Indies))
+
+FNSdata2<-rbind(Arctic.five,Caribbean.five,Indian.five,Mediterranean.five,East_Indies.five)
+
+
+FNStable2=as.data.frame(FNSdata2,row.names=c("Arctic","Caribbean","Indian","Mediterranean","East_Indies"))
+colnames(FNStable2)=c("min","firstQ","median","thirdQ","max")
+
+newSTEP2=1.5*(FNStable2$thirdQ-FNStable2$firstQ)
+newLowerfence2=FNStable2$firstQ-newSTEP2
+newUpperfence2=FNStable2$thirdQ+newSTEP2
+newLOWERFENCE2=FNStable2$firstQ-2*newSTEP2
+newUPPERFENCE2=FNStable2$thirdQ-2*newSTEP2
+newtable2=cbind(FNStable2,newLowerfence2,newUpperfence2,newLOWERFENCE2,newUPPERFENCE2)
+
+#outliers　for "Arctic","Caribbean","Indian","Mediterranean","East_Indies"
+Soutlier<-data.frame(Arctic=c(75767,83896,195928),
+           Caribbean=c(29530,44218," "),
+           Indian=c(280100," "," "),
+           Mediterranean=c(226658," "," "),
+           East_Indies=c(9262,9822," "));Soutlier
+```
+
+*There are total 9 outliers in the island.areas data
+
+#Construct parallel boxplots.
+
+```{r}
+boxplot2<-boxplot(Area ~ Ocean, horizontal = TRUE,
+         data = island.areas, xlab = "Area",
+         ylab = "Ocean");boxplot2
+```
+*While East_Indies has a wider spread, others have a narrow spreads. East_Indies and Arctic have the similar median. So there appears to be a dependence between spread and level here.
+
+#Using a spread-vs-level plot, determine the power of a transformation that you believe will stabilize spread.
+
+```{r}
+#spread-vs-level plot
+spread.level.plot(island.areas$Area, island.areas$Ocean)
+
+#How to find power
+power=1-0.5
+```
+
+*For now, I believe that the power of a transformation 0.5 will stabilize spread.
+
+#Using the transformation, reanalyze the data by computing new 5-number summaries (and fence and outside values) and parallel boxplots. 
+
+```{r}
+power=1-0.5
+reexpressed.data2 <- data.frame(AreaPower=island.areas$Area^(power),Ocean=island.areas$Ocean)
+
+attach(reexpressed.data2)
+spread.level.plot(reexpressed.data2$AreaPower, reexpressed.data2$Ocean)
+newfivesum2<-tapply(reexpressed.data2$AreaPower, reexpressed.data2$Ocean,summary);newfivesum2
+#mean does not count as five number summary
+```
+```{r}
+#fences for reexpressed data the Artic Ocean, Caribbean Sea, Indian Ocean, Mediterranean Sea and East Indies
+Arctic=subset(reexpressed.data2$AreaPower,reexpressed.data2$Ocean=="Arctic")
+Arctic.five<-as.vector(fivenum(Arctic))
+Caribbean=subset(reexpressed.data2$AreaPower,reexpressed.data2$Ocean=="Caribbean")
+Caribbean.five<-as.vector(fivenum(Caribbean))
+Indian=subset(reexpressed.data2$AreaPower,reexpressed.data2$Ocean=="Indian")
+Indian.five<-as.vector(fivenum(Indian))
+Mediterranean=subset(reexpressed.data2$AreaPower,reexpressed.data2$Ocean=="Mediterranean")
+Mediterranean.five<-as.vector(fivenum(Mediterranean))
+East_Indies=subset(reexpressed.data2$AreaPower,reexpressed.data2$Ocean=="East_Indies")
+East_Indies.five<-as.vector(fivenum(East_Indies))
+
+FNSdata2<-rbind(Arctic.five,Caribbean.five,Indian.five,Mediterranean.five,East_Indies.five)
+
+
+FNStable2=as.data.frame(FNSdata2,row.names=c("Arctic","Caribbean","Indian","Mediterranean","East_Indies"))
+colnames(FNStable2)=c("min","firstQ","median","thirdQ","max")
+
+newSTEP2=1.5*(FNStable2$thirdQ-FNStable2$firstQ)
+newLowerfence2=FNStable2$firstQ-newSTEP2
+newUpperfence2=FNStable2$thirdQ+newSTEP2
+newLOWERFENCE2=FNStable2$firstQ-2*newSTEP2
+newUPPERFENCE2=FNStable2$thirdQ-2*newSTEP2
+newtable2=cbind(FNStable2,newLowerfence2,newUpperfence2,newLOWERFENCE2,newUPPERFENCE2);newtable2
+
+
+#outliers　for "Arctic","Caribbean","Indian","Mediterranean","East_Indies"
+Soutlier<-data.frame(Arctic=c(442.63754924317," "),
+                     Caribbean=c(171.84295155752,210.280764693302),
+                     Mediterranean=c(476.086126661973," "));Soutlier
+
+```
+
+*There are totall 4 outliers.
+
+#Was the transformation successful in stabilizing spread? If not, which alternative transformation might you try next?
+
+*No, The transformation was not successfull since there is positive relationship between spread and level We will try to use 0.2 as a power.
+
+```{r}
+power=1-0.8
+reexpressed.data2 <- data.frame(AreaPower=island.areas$Area^(power),Ocean=island.areas$Ocean)
+attach(reexpressed.data2)
+spread.level.plot(reexpressed.data2$AreaPower, reexpressed.data2$Ocean)
+newfivesum2<-tapply(reexpressed.data2$AreaPower, reexpressed.data2$Ocean,summary);newfivesum2
+```
+
+*Now we do not see much of a relationship between logM and logdF in this plot, suggesting that we have removed the trend between spread and level. 
+
+```{r}
+Arctic=subset(reexpressed.data2$AreaPower,reexpressed.data2$Ocean=="Arctic")
+Arctic.five<-as.vector(fivenum(Arctic))
+Caribbean=subset(reexpressed.data2$AreaPower,reexpressed.data2$Ocean=="Caribbean")
+Caribbean.five<-as.vector(fivenum(Caribbean))
+Indian=subset(reexpressed.data2$AreaPower,reexpressed.data2$Ocean=="Indian")
+Indian.five<-as.vector(fivenum(Indian))
+Mediterranean=subset(reexpressed.data2$AreaPower,reexpressed.data2$Ocean=="Mediterranean")
+Mediterranean.five<-as.vector(fivenum(Mediterranean))
+East_Indies=subset(reexpressed.data2$AreaPower,reexpressed.data2$Ocean=="East_Indies")
+East_Indies.five<-as.vector(fivenum(East_Indies))
+
+FNSdata2<-rbind(Arctic.five,Caribbean.five,Indian.five,Mediterranean.five,East_Indies.five)
+
+
+FNStable2=as.data.frame(FNSdata2,row.names=c("Arctic","Caribbean","Indian","Mediterranean","East_Indies"))
+colnames(FNStable2)=c("min","firstQ","median","thirdQ","max")
+
+newSTEP2=1.5*(FNStable2$thirdQ-FNStable2$firstQ)
+newLowerfence2=FNStable2$firstQ-newSTEP2
+newUpperfence2=FNStable2$thirdQ+newSTEP2
+newLOWERFENCE2=FNStable2$firstQ-2*newSTEP2
+newUPPERFENCE2=FNStable2$thirdQ-2*newSTEP2
+newtable2=cbind(FNStable2,newLowerfence2,newUpperfence2,newLOWERFENCE2,newUPPERFENCE2);newtable2
+
+
+#outliers　for "Arctic","Caribbean","Indian","Mediterranean","East_Indies"
+Soutlier<-data.frame(Arctic=c(11.4398228965051),
+           Mediterranean=c(11.778072151889));Soutlier
+```
+
+
+```{r}
+#Comparing the spreads side by side
+comps1<-as.data.frame(rbind(19798.0,2565.5,65293.0,13406.0,3085.0))
+comps2<-as.data.frame(rbind(1.456865,2.192609,4.111003,2.729307,1.862276))
+comps<-data.frame(comps1,comps2)
+rename(comps,dFraw=V1,dFreexp=V1.1)
+65293.0/2565.5
+4.111003/1.456865
+```
+
+*The spreads of the raw data range from 2565.5 to 65293.0-the largest spread is 25.4504 times the smallest. The spreads of the reexpressed data range from 4.111003 to 1.456865-the largest spread is 2.821815 times the smallest. This is an big improvement - it probably make sence to use the reexpressed data.
+
+```{r}
+boxplot3<-boxplot(AreaPower ~ Ocean, horizontal = TRUE,
+          data = reexpressed.data2, xlab = "Area",
+          ylab = "Ocean");boxplot3
+```
+
+*This plot looks better than before. However, East_Indies still has the largest spread of a batch.
+
+#Discuss the differences you found between the groups and unusual data values (BE SPECIFIC AND MAKE COMPARISONS).
+
+Before fransforming the datasets,in the parallel boxplots we could see the extreamly large value next to the right whiskers in all Ocean. Moreover, the spreads of batches are narrow except East_Indies. 
+
+However, after transforming the datasets, there are only three outliers(in Arctic, Caribbean and Indian) in parallel boxplots. There are no extream outliers in Mediterranean and East_Indies. Moreover, all of batches are roughly equal spreaded except East_indies.(East_indies seems a little bit wider). 
+
+

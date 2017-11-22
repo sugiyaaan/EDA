@@ -1,0 +1,97 @@
+---
+title: "EDA Activity 3"
+author: "Motoki Sugino"
+date: "September 30, 2016"
+output: html_document
+---
+
+Exercise:
+From an almanac, collect some physical or population characteristic from each of the 50 states.  (This could be the area of the largest lake, the length of the longest river, the area, the population density, or something else.)  Explain what you are collecting and give the reference for the book where the data came from.  Enter this data into R.  Using inspection of histograms, parallel boxplots, and Hinkley’s quick method, find the power of a power reexpression that will approximately make the batch symmetric. (You will find the slider functions slider.power and slider.match helpful.)   In your writeup, describe in detail what you did including the appropriate R output.
+
+Data set(Asian population):http://factfinder.census.gov/faces/tableservices/jsf/pages/productview.xhtml?src=bkmk
+
+Data set(Land Area): https://www.census.gov/geo/reference/state-area.html
+
+population density was calculated by this formula.
+population density = Asian/Land Area
+
+Google Spreadsheet: https://docs.google.com/spreadsheets/d/1k5OBYHB8bwg1_ouGo05StFONI0Gsm-nCumTB6Cz6Shs/pub?output=csv
+#Enter this data into R.
+```{r}
+library(LearnEDA)
+pop2015=read.csv("https://docs.google.com/spreadsheets/d/1k5OBYHB8bwg1_ouGo05StFONI0Gsm-nCumTB6Cz6Shs/pub?output=csv")
+
+```
+
+#Using inspection of histograms,
+```{r}
+pop.den<-pop2015$pop.den.mi
+hist(pop.den)
+```
+
+From the histgram of pupulation density above, we can see the data is skewed right.
+
+#Parallel boxplots
+Next, we use slider power function to find the best power reexpression.
+```{r}
+#slider.power(pop.den)
+hist(pop.den^-0.1, main="Power = -0.1, d=0.002")
+```
+
+The slider power function gives us the best reexpression as Power = -0.1. Also, Hinkley’s statistic is d = 0.002 that indicates approximately symmetirc.
+
+In this comparison, it is useful if the original and reexpressed data are on the same scale. 
+ So, we compare the original and reexpressed data to study the effect of the reexpression.
+```{r}
+#slider.match(pop.den)
+par(mfrow=c(2, 1))
+boxplot(pop.den/10,main="raw",horizontal = TRUE)
+boxplot(pop.den^-0.1, main="Power=-0.1, d=0",horizontal = TRUE)
+```
+
+From the boxplot above, the data spreads looks like pretty much symmetric. The slider power function gives us the best reexpression as Power = -0.1. Also, Hinkley’s statistic is d = 0 that indicates approximately symmetirc. This results is the same as what we got in the slider power function.
+ It was tried to make to parallel boxplots by using trivial reexpression (pop.den/10). However, it looks not good as the example in Activity 3. Further investigation needs to make a trivial reexpression for raw data in order to display a better boxplot.
+
+#Hinkley’s quick method
+```{r}
+#take roots
+roots <- sqrt(pop.den)
+aplpack::stem.leaf(roots)
+root.lv <- lval(roots)
+root.lv
+plot(root.lv$mids)
+
+#take log
+logs <- log(pop.den) 
+aplpack::stem.leaf(logs)
+logs.lv <- lval(logs)
+logs.lv
+plot(logs.lv$mids)
+
+#if take p = −1/2     -1/sqrt(pop.den) Further investigation 
+recroots <- - 1 / sqrt(pop.den)
+aplpack::stem.leaf(recroots)
+recroots.lv <- lval(recroots)
+recroots.lv
+plot(recroots.lv$mids)
+
+hinkley(roots)
+hinkley(logs)
+hinkley(recroots)
+```
+
+Looking at the values of d in Hinkley's quick method, the correct reexpression appears to be between p=0 and p=-.5.
+
+Therefore, p=-0.1 is could be one of the best reexpression. However, we are going to take a new power transforation as p=-0.07.
+```{r}
+par(mfrow=c(2, 1))
+boxplot(pop.den^-0.07,main="Power=-0.07",horizontal = TRUE)
+boxplot(pop.den^-0.1, main="Power=-0.1,",horizontal = TRUE)
+```
+
+From the above boxplot, we can see there is no outlier in the boxplot which p=-0.07. 
+Moreover, it looks like more symmetric.
+
+In conclusion, both taking p=-0.1 and p=-0.07 gives the symmetric data spreads and remove right skeweness.
+Therefore, both should be the best reexpression in order to get a symmetric shape of data.
+However, power with -0.07 looks more symmetric to me, so the best reexpression is power with -0.07.

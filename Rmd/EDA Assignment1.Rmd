@@ -1,0 +1,69 @@
+---
+title: "EDA Assignment1"
+author: "Motoki Sugino"
+date: "August 24, 2016"
+output: word_document
+---
+#1 Your name
+Motoki Sugino 
+
+#2 Source of the data
+##* Dataset1 
+https://www.kaggle.com/abcsds/pokemon (kaggle)
+
+##* Dataset2
+http://transparentcalifornia.com/salaries/san-francisco/
+
+#3 A description of the dataset
+##* Dataset1
+
+(1) This below are measured.
+
+   * Name: Name of each pokemon
+   
+   * Total: sum of all stats that come after this, a general guide to how strong a pokemon is
+  
+   * HP: hit points, or health, defines how much damage a pokemon can withstand before fainting
+  
+   * Attack: the base modifier for normal attacks (eg. Scratch, Punch)
+  
+   * Defense: the base damage resistance against normal attacks
+  
+   * SP Atk: special attack, the base modifier for special attacks (e.g. fire blast, bubble beam)
+  
+   * SP Def: the base damage resistance against special attacks
+  
+   * Speed: determines which pokemon attacks first each round
+
+(2) We don't know when the data was corrected. 
+
+(3) This are the raw attributes that are used for calculating how much damage an attack will do in the games. This dataset is about the pokemon games 
+
+##* Dataset2
+
+(1) 2015 salaries for San Francisco of page 1.
+
+(2) Regular pay, Overtime pay, Other pay, Total benefits and Total pay & benefits are measured.
+
+(3) We can find the average saralry in San Flancisco by analysing the data.
+
+    Moreover, if you download more date from the URL the date came from, you can compare which years have higher       average of salaries in San Flancisco.
+
+(4) Exploration Ideas example.
+
+  * How have salaries changed over time between different groups of people?
+
+  * How are base pay, overtime pay, and benefits allocated between different groups?
+
+  * Is there any evidence of pay discrimination based on gender in this dataset?
+
+  * How is budget allocated based on different groups and responsibilities?
+
+#4 The URL address where the file can be located
+##* Dataset1 
+https://docs.google.com/spreadsheets/d/1ni9fGCOfnUd3BYuggKm_jttRh8DHpQFgLXHiZYDPiCg/pub?output=csv
+
+##* Dataset2
+https://docs.google.com/spreadsheets/d/1tqh_FERElW3C0Z_Rn2NP76SZdsbKsrViqjw_vtQEFww/pub?output=csv
+
+

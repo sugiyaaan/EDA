@@ -1,0 +1,365 @@
+---
+title: "EDA Assignment 5"
+author: "Motoki Sugino"
+date: "10/16/2016"
+output: html_document
+---
+
+###1.  Find some (x, y) data where you think x and y are strongly related.  Make a scatterplot and find the least-squares and resistant fits.  Plot the two sets of residuals.  Interpret the fit and the residuals.  Contrast the two methods of fitting – is it better to fit a resistant line?
+scatter plot
+```{r}
+library(LearnEDA)
+library(datasets)
+library(car)
+head(women)
+
+plot(women$height, women$weight,main="Scatter plot")
+curve(-84.7+3.4*x,add=TRUE, col="red")
+abline(lm(weight ~ height, data = women))
+legend("topleft",legend=c("LeastSquare","Resistant"),col=c("blue","red"),lty=1,lwd=2,cex=.8)
+```
+
+We can see that there is a positive trend which makes sense and weight and height are strongly related since the x and y are failling in straight lines. 
+
+find the least squares 
+```{r}
+#find the least squares
+coef(lm(weight ~ height, data = women))
+# Calculate slope and intercept of line of best fit
+myfit <- with(women,lm(weight ~ height))
+RESIDUAL <- resid(myfit)
+plot(women$height, RESIDUAL,ylab="Residuals",xlab="height",main="residual vs height")
+abline(h = 0, lwd=2)
+```
+
+We can see that there is an obvious pattern in the residual ve height plot. The height between 62 and 69 have negative residuals. 
+
+Resistant fits
+```{r}
+#resistant fits
+myfit <- with(women,rline(height, weight))
+FIT <- with(myfit, a + b * (women$height - xC))
+RESIDUAL <- myfit$residual
+#options(digits=4)
+#data.frame(women$height,women$weight,FIT, RESIDUAL)
+plot(women$height, RESIDUAL,ylab="Residuals",xlab="height",main="residual vs height")
+abline(h=0, lwd=2)
+
+```
+
+We can see that there is an obvious pattern in the residual ve height plot. The height between **62** and **69** have negative residuals. This plot looks very similar to the plot for least squars fit.  
+
+
+Fitting Method    | Fits                                 
+-------------     |-------------          
+least-squares fit | $y=3.45000x-87.51667$ 
+resistant fit     | $y=136.3+3.4(x-65)$   
+
+
+The slope is **m = 3.45**, so this means that the weight in women has generally been increasing,on average,by **3.45** when the height increases by one. 
+
+Contrast the two methods of fitting, we could see that there is no big difference in both a least square fit and a resistant fit in this data.
+
+
+###2.  Fit a resistant line to the following data (population of England and Wales in millions for different years).   Data is stored in the file pop.england in the LearnEDA package.  Plot the residuals and summarize the results.
+```{r}
+data(pop.england)
+head(pop.england)
+with(pop.england,plot(YEAR,POPULATION,xlab="YEAR",ylab="POPULATION", main="Scatter plot"))
+```
+
+We can see that there is a positive trend which makes sense and YEAR and POPULATION are strongly related since the x and y are failling in straight lines. 
+
+Resistant fits
+```{r}
+#resistant fits
+myfit <- with(pop.england,rline(YEAR, POPULATION))
+FIT <- with(myfit, a + b * (pop.england$YEAR - xC))
+RESIDUAL <- myfit$residual
+#options(digits=4)
+#data.frame(women$height,women$weight,FIT, RESIDUAL)
+plot(pop.england$YEAR, RESIDUAL,ylab="Residuals",xlab="YEAR",main="residual vs YEAR")
+abline(h=0, lwd=2)
+
+
+plot(pop.england$YEAR, pop.england$POPULATION,main="Scatter plot")
+curve(-475.8+0.2674*x,add=TRUE, col="red")
+```
+
+From the residual vs year plot, we can see that there is an obvious pattern therefore, the residuals are not constant. while there is the highest residual in 1800, there are extreamly lower residulas in year between 1860 and 1880. We can guess that something natural disaster or war might be happened at that time in England.
+We may need to transform the data to go further analysis.
+
+
+###3.  For the following problems (from Tukey, EDA),
+
+(a)   straighten plot using transformations applied on summary points
+(b)   fit a line to the transformed plots and plot the residuals
+(c)   summarize all results
+
+These datasets are stored as tukey.26a, tukey.26b, and tukey.26c in the LearnEDA package.
+####For tukey.26a
+```{r}
+head(tukey.26a)
+with(tukey.26a,plot(temp,rate,xlab="temp",ylab="rate", main="Scatter plot"))
+with(tukey.26a,lines(lowess(temp, rate, f=0.5)))
+```
+
+we can see that data is jumping after temparature 28. Therefore, we need to split the data into two parts.
+```{r}
+low=tukey.26a[1:8,]
+high=tukey.26a[9:14,]
+par(mfrow=c(1,2))
+# For low, we have 8 points so a symmetric way to go assigns 3,2,3 to the groups.#
+with(low,plot(temp,rate,main = "Low Temperature"))
+summary.pointsLow <- data.frame(x = c(22,24.5,27),
+                                y = c(308,530.5,806))
+points(summary.pointsLow, cex=2, pch=19, col="red")
+abline(lm(y ~ x, data=summary.pointsLow[1:2, ]), col="blue")
+abline(lm(y ~ x, data=summary.pointsLow[2:3, ]), col="blue")
+
+# For low, we have 6 points so a symmetric way to go assigns 2,2,2 to the groups.#
+with(high,plot(temp,rate,main="High Temperature"))
+summary.pointsHigh <- data.frame(x = c(29.5,31.5,33.5),
+                                 y = c(126.5,185,253))
+points(summary.pointsHigh,cex=2, pch=19, col="red")
+abline(lm(y ~ x, data=summary.pointsHigh[1:2, ]), col="blue")
+abline(lm(y ~ x, data=summary.pointsHigh[2:3, ]), col="blue")
+par(mfrow=c(1,1))
+```
+
+$(x, y)=(temp,rate)$
+
+Temperature |left summary point   |  center summary point | right summary point
+------------|-------------------  |-----------------------|--------------------
+low         |$(xL, yL)=(22,308)$  |$(xC, yC)=(24.5,530.5)$|$(xR, yR)=(27,806)$
+high        |$(xL, yL)=(29,126.5)$|$(xC, yC)=(31.5,185)$  |$(xR, yR)=(33.5,253)$
+
+Straightening
+```{r}
+straightening.work <- function(sp, px, py){
+sp$tx <- with(sp, (x ^ px - 1) / px)
+sp$ty <- with(sp, (y ^ py - 1) / py)
+sp$slope[1] <- with(sp, diff(ty[1:2]) / diff(tx[1:2]))
+sp$slope[2] <- with(sp, diff(ty[2:3]) / diff(tx[2:3]))
+sp$half.slope.ratio <- with(sp, slope[2] / slope[1])
+sp$slope[3] <- NA
+sp$half.slope.ratio[2:3] <- NA
+row.names(sp) <- c("Left", "Center", "Right")
+sp}
+```
+
+The bulge in both curvatures are towards large x and small y. We would like to make half slope ratio close to
+the goal value of 1.
+
+Straightening for low temperature
+```{r}
+straightening.work(summary.pointsLow, 1, 1)
+straightening.work(summary.pointsLow, 0.5, 1)#Taking a square root of x#
+straightening.work(summary.pointsLow, 0.5, 0.5)#Taking a square root of x and a square root of y#
+```
+
+The half-slope ratio is bHS = 1.028, so it appears that we’ve straightened the plot by transforming x to take a quare root of x and a quare root of y.
+
+Straightening for high temperature
+```{r}
+straightening.work(summary.pointsHigh, 1, 1)
+straightening.work(summary.pointsHigh, 0.5, 1)#Taking a square root of x#
+straightening.work(summary.pointsHigh, 0.5, 0.5)#Taking a square root of x and a square root of y#
+```
+
+The half-slope ratio is bHS = 1.01, so it appears that we’ve straightened the plot by transforming x to take a quare root of x and a quare root of y.
+
+Transforming both data.
+```{r}
+par(mfrow=c(1,2))
+#for low#
+new.x <- - low$temp ^ (0.5)
+new.y <- - low$rate ^ (0.5)
+plot(new.x, new.y)
+fit <- rline(new.x, new.y, iter=5)
+c(fit$a, fit$b, fit$xC)
+
+#The residuals from this line fit are shown below.#
+plot(new.x, fit$residual, ylab="Residual",xlab="new.temp")
+abline(h=0)
+```
+
+summarize for low temperature.
+
+We fit a line shown below – it has intercept −22.972, slope 21.434, and xC = −4.949.
+Our line fit is : $sqrt(y)=-22.972+21.434*(sqrt(x)-4.949)$
+
+In the scatterplot, we are successful to see the liner relationship.
+I might see any obvious curvature in the residual plot. This means that we might not be successful
+in straightening the association pattern in the graph.
+
+```{r}
+#for high#
+new.x <- - high$temp ^ (0.5)
+new.y <- - high$rate ^ (0.5)
+plot(new.x, new.y)
+fit <- rline(new.x, new.y, iter=5)
+c(fit$a, fit$b, fit$xC)
+
+#The residuals from this line fit are shown below.#
+plot(new.x, fit$residual, ylab="Residual",xlab="new.temp")
+abline(h=0)
+par(mfrow=c(1,1))
+```
+
+summarize for high temperature.
+
+We fit a line shown below – it has intercept −22.972, slope 21.434, and xC = −4.949.
+Our line fit is : $sqrt(y)=-13.597+13.079*(sqrt(x)-5.612)$
+
+First, I don’t see any obvious curvature in the plot. This means that we were successful in straightening the association pattern in the graph.
+There might be one unusual observation in the right corner. We might need to check the temperature which is the higher than 29 (-5.385 in new temp data).
+
+
+####For tukey.26b
+```{r}
+head(tukey.26b)
+with(tukey.26b,plot(year,deposits,xlab="year",ylab="deposits", main="Scatter plot"))
+with(tukey.26b,lines(lowess(year, deposits, f=0.5)))
+```
+
+we can see that there is a slightly curved relationship between year and deposits so there is not a straight-line relationship
+
+Three summary points
+we have **29** points so a symmetric way to go assigns **10,9,10** to the groups.
+```{r}
+data <- data.frame(tukey.26b$year, tukey.26b$deposits)
+sorted.data <- data[order(tukey.26b$year), ]
+round(sorted.data, 2)
+```
+
+$(x, y)=(year,deposits)$
+
+left summary point   |center summary point   |right summary point
+-------------------  |-----------------------|--------------------
+$(xL, yL)=(41.5,747)$|$(xC, yC)=(51,1212)$   |$(xR, yR)=(60.5,2455.5)$
+
+These points are plotted as red dots in the figure below.
+```{r}
+with(tukey.26b,
+plot(year, deposits))
+summary.points <- data.frame(x = c(41.5, 51, 60.5),
+y = c(747, 1212, 2455.5))
+points(summary.points, cex=2, pch=19, col="red")
+abline(lm(y ~ x, data=summary.points[1:2, ]), col="blue")
+abline(lm(y ~ x, data=summary.points[2:3, ]), col="blue")
+```
+
+The bulge in both curvatures are towards large x and small y. We would like to make half slope ratio close to
+the goal value of 1.
+
+Straightening 
+```{r}
+straightening.work(summary.points, 1, 1)
+straightening.work(summary.points, 0.5, 1)#Taking a square root of x#
+straightening.work(summary.points, 0.5, 0.5)#Taking a square root of x and a square root of y#
+straightening.work(summary.points, -0.5, -1)#by transforming x to the -0.5 power and y to the -1 power#
+```
+
+The half-slope ratio is bHS = 1.079, so it appears that we’ve straightened the plot by transforming x to the -0.5 power and y to the -1 power.
+
+Transforming both data.
+```{r}
+new.x <-  tukey.26b$year ^ (-0.5)
+new.y <-  tukey.26b$deposits ^ (-1)
+plot(new.x, new.y)
+curve(-0.00405+0.0347961*x,add=TRUE, col="red")
+
+fit <- rline(new.x, new.y, iter=5)
+c(fit$a, fit$b, fit$xC) #FIT <- with(myfit, a + b * (tukey.26b$year - xC))
+
+plot(new.x, fit$residual, ylab="Residual",xlab="new.year")#The residuals from this line fit are shown below.#
+abline(h=0)
+```
+
+summarize.
+  
+We fit a line shown below – it has intercept 0.0008223, slope 0.0347961, and xC = 0.1400280.
+Our line fit is : $y^ {(-1)}=-0.0008223+0.0347961*(x^ {(-0.5)} - 0.1400280)$
+
+In the scatterplot, we are successful to see the liner relationship.
+
+In the residual plot, I might see an obvious curvature in end after 0.15. 
+However,the residual looks very constant in between 0.12 to 0.1474 (after year 1945). 
+This means that we might not be successful in straightening the association pattern in the graph.
+However,we might be successful in straightening the association pattern in the graph for after 1945.
+
+####For tukey.26c
+```{r}
+head(tukey.26c)
+with(tukey.26c,plot(year,miles,xlab="year",ylab="miles", main="Scatter plot"))
+with(tukey.26c,lines(lowess(year, miles, f=0.5)))
+```
+
+we can see that there is a slightly curved relationship between year and miles so there is not a straight-line relationship
+
+Three summary points
+we have **24** points so a symmetric way to go assigns **8,8,8** to the groups.
+```{r}
+data <- data.frame(tukey.26c$year, tukey.26c$miles)
+sorted.data <- data[order(tukey.26c$year), ]
+round(sorted.data, 2)
+```
+
+$(x, y)=(year,miles)$
+
+left summary point      |center summary point   |right summary point
+-------------------     |-----------------------|--------------------
+$(xL, yL)=(40.5,1218.5)$|$(xC, yC)=(48.5,6367)$ |$(xR, yR)=(56.5,23851)$
+
+These points are plotted as red dots in the figure below.
+```{r}
+with(tukey.26c,
+plot(year, miles))
+summary.points <- data.frame(x = c(40.5, 48.5, 56.5),
+y = c(1218.5, 6367, 23851))
+points(summary.points, cex=2, pch=19, col="red")
+abline(lm(y ~ x, data=summary.points[1:2, ]), col="blue")
+abline(lm(y ~ x, data=summary.points[2:3, ]), col="blue")
+```
+
+The bulge in both curvatures are towards large x and small y. We would like to make half slope ratio close to
+the goal value of 1.
+
+Straightening
+```{r}
+straightening.work(summary.points, 1, 1)
+straightening.work(summary.points, 0.5, 1)#Taking a square root of x#
+straightening.work(summary.points, 0.5, 0.5)#Taking a square root of x and a square root of y#
+straightening.work(summary.points, 0.05, 0.05)#by transforming x to the 0.05 power and y to the 0.05 power#
+```
+
+The half-slope ratio is bHS = **1.007**, so it appears that we’ve straightened the plot by transforming x to the **0.05** power and y to the **0.05** power.
+
+Transforming both data.
+```{r}
+new.x <- - tukey.26c$year ^ (0.05)
+new.y <- - tukey.26c$miles ^ (0.05)
+plot(new.x, new.y)
+curve(13.06+12.033*x,add=TRUE, col="red")
+
+fit <- rline(new.x, new.y, iter=5)
+c(fit$a, fit$b, fit$xC) #FIT <- with(myfit, a + b * (tukey.26c$year - xC))
+
+plot(new.x, fit$residual, ylab="Residual",xlab="new.year")#The residuals from this line fit are shown below.#
+abline(h=0)
+```
+
+
+summarize.
+  
+We fit a line shown below – it has intercept **-1.546**, slope **12.033**, and xC = **-1.214**.
+Our line fit is : $y ^{ (0.05)}=-1.546+12.033*(x^{ (0.05) }+ 1.214.)$
+
+In the scatterplot, we are successful to see the liner relationship.
+
+In the residual plot, there are unusual residuals which have higher residuals and a decreasing trend in the left side of the plot **(-1.225,-1.226,-1.227)**. This indicates that we might need to check year **1958**, **1959** and **1960**.
+
+Furthermore, there is on obvious lower residual which is year **-1.211 (1946)**. This indicates that year **1946** has larger revenue passenger miles onU.S.domestic scheduled airlines.
+
+However,other residuals might be successful in straightening the association pattern in the graph.
